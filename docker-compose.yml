@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   # 1. THE DATABASE
   postgres:
-    image: pgvector/pgvector:16
+    image: pgvector/pgvector:pg16
     container_name: docura-postgres
     environment:
       POSTGRES_USER: ${DB_USERNAME:-postgres}
@@ -80,4 +78,5 @@ volumes:
   docura-uploads:
   prometheus-data:
   grafana-data:
+
 
