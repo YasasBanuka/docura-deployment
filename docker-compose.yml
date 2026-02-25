@@ -1,1 +1,83 @@
+version: '3.8'
+
+services:
+  # 1. THE DATABASE
+  postgres:
+    image: pgvector/pgvector:16
+    container_name: docura-postgres
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: docura
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # 2. THE BACKEND API
+  backend:
+    # Look here! We are pulling your pre-compiled image from Docker Hub!
+    image: ybanuka/docura-backend:latest
+    container_name: docura-backend
+    depends_on:
+      - postgres
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+      - DB_URL=jdbc:postgresql://postgres:5432/docura
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - JWT_SECRET=${JWT_SECRET}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    volumes:
+      - docura-uploads:/app/uploads
+    restart: unless-stopped
+
+  # 3. THE FRONTEND (NGINX PROXY)
+  frontend:
+    # Pulling your React code from Docker Hub!
+    image: ybanuka/docura-frontend:latest
+    container_name: docura-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    volumes:
+      # Inject our custom proxy rules into the Nginx container
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
+  # 4. PROMETHEUS (METRICS SCRAPER)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: docura-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # 5. GRAFANA (DASHBOARDS)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: docura-grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+# Named Volumes for persistent storage (so data survives restarts)
+volumes:
+  postgres-data:
+  docura-uploads:
+  prometheus-data:
+  grafana-data:
 
