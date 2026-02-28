@@ -223,6 +223,15 @@ After accessing Grafana at `:3000`:
 
 ---
 
+## 📚 Further Documentation
+
+| Document | Description |
+|---|---|
+| [docs/infrastructure.md](docs/infrastructure.md) | AWS EC2 spec, all 5 Docker services explained, Nginx SSE config, volume strategy, TLS roadmap |
+| [docs/monitoring.md](docs/monitoring.md) | Prometheus setup, 25+ PromQL query reference, Grafana dashboard guide, recommended alerts |
+
+---
+
 ## 🔗 Related Repositories
 
 - **[docura-backend](https://github.com/YasasBanuka/document-insight-backend)** — Spring Boot 3 backend with full docs in `docs/`
